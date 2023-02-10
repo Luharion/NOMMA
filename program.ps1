@@ -1,4 +1,4 @@
-slmgr.vbs /ipk 8NBT4-JHGVW-J9WGV-X7FX7-DRR9C
+slmgr.vbs /ipk 
 if ((Get-Command winget) -eq $null) {
     Write-Output "Winget is not installed."
 Function Install-WinGet {
