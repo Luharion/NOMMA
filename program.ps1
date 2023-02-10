@@ -83,7 +83,7 @@ $OfficeConfigXml = "$OfficeSourcePath\configuration.xml"
 @"
 <Configuration>
   <Add OfficeClientEdition="64">
-    <Product ID="O365ProPlusRetail">
+    <Product ID="6YDG3-6NR8Q-J6T2C-VY2FY-R6263">
       <Language ID="en-us"/>
     </Product>
   </Add>
