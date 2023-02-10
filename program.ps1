@@ -1,38 +1,82 @@
-# Install Google Chrome
-$url = "https://dl.google.com/chrome/install/stable/GoogleChromeStandaloneSetup64.exe"
-$installer = "$env:temp\GoogleChromeStandaloneSetup64.exe"
-Invoke-WebRequest $url -OutFile $installer
-Start-Process $installer -ArgumentList '/silent /install' -Wait
-
-# Install Firefox
-Write-Host "Installing Firefox..."
-Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest&os=win64&lang=en-US" -OutFile "$env:TEMP\FirefoxSetup.exe"
-Start-Process -FilePath "$env:TEMP\FirefoxSetup.exe" -ArgumentList "/S" -Wait
-Remove-Item "$env:TEMP\FirefoxSetup.exe"
-
-# Install Notepad++
-Write-Host "Installing Notepad++..."
-Invoke-WebRequest -Uri "https://notepad-plus-plus.org/repository/7.9.2/npp.7.9.2.Installer.x64.exe" -OutFile "$env:TEMP\Notepad++.exe"
-Start-Process -FilePath "$env:TEMP\Notepad++.exe" -ArgumentList "/S" -Wait
-Remove-Item "$env:TEMP\Notepad++.exe"
-
-# Install Zoom
-Write-Host "Installing Zoom..."
-Invoke-WebRequest -Uri "https://zoom.us/client/latest/ZoomInstaller.exe" -OutFile "$env:TEMP\ZoomInstaller.exe"
-Start-Process -FilePath "$env:TEMP\ZoomInstaller.exe" -ArgumentList "/S" -Wait
-Remove-Item "$env:TEMP\ZoomInstaller.exe"
-
-# Install VLC
-Write-Host "Installing VLC..."
-Invoke-WebRequest -Uri "https://get.videolan.org/vlc/3.0.11/win64/vlc-3.0.11-win64.exe" -OutFile "$env:TEMP\VLC.exe"
-Start-Process -FilePath "$env:TEMP\VLC.exe" -ArgumentList "/L=1033 /S" -Wait
-Remove-Item "$env:TEMP\VLC.exe"
-
-# Install CCleaner
-Write-Host "Installing CCleaner..."
-Invoke-WebRequest -Uri "https://download.ccleaner.com/ccsetup564.exe" -OutFile "$env:TEMP\CCleaner.exe"
-Start-Process -FilePath "$env:TEMP\CCleaner.exe" -ArgumentList "/S" -Wait
-Remove-Item "$env:TEMP\CCleaner.exe"
-
-Write-Host "Installation complete!"
+if ((Get-Command winget) -eq $null) {
+    Write-Output "Winget is not installed."
+Function Install-WinGet {
+    #Install the latest package from GitHub
+    [cmdletbinding(SupportsShouldProcess)]
+    [alias("iwg")]
+    [OutputType("None")]
+    [OutputType("Microsoft.Windows.Appx.PackageManager.Commands.AppxPackage")]
+    Param(
+        [Parameter(HelpMessage = "Display the AppxPackage after installation.")]
+        [switch]$Passthru
+    )
+    Write-Verbose "[$((Get-Date).TimeofDay)] Starting $($myinvocation.mycommand)"
+    if ($PSVersionTable.PSVersion.Major -eq 7) {
+        Write-Warning "This command does not work in PowerShell 7. You must install in Windows PowerShell."
+        return
+    }
+    #test for requirement
+    $Requirement = Get-AppPackage "Microsoft.DesktopAppInstaller"
+    if (-Not $requirement) {
+        Write-Verbose "Installing Desktop App Installer requirement"
+        Try {
+            Add-AppxPackage -Path "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx" -erroraction Stop
+        }
+        Catch {
+            Throw $_
+        }
+    }
+    $uri = "https://api.github.com/repos/microsoft/winget-cli/releases"
+    Try {
+        Write-Verbose "[$((Get-Date).TimeofDay)] Getting information from $uri"
+        $get = Invoke-RestMethod -uri $uri -Method Get -ErrorAction stop
+        Write-Verbose "[$((Get-Date).TimeofDay)] getting latest release"
+        #$data = $get | Select-Object -first 1
+        $data = $get[0].assets | Where-Object name -Match 'msixbundle'
+        $appx = $data.browser_download_url
+        #$data.assets[0].browser_download_url
+        Write-Verbose "[$((Get-Date).TimeofDay)] $appx"
+        If ($pscmdlet.ShouldProcess($appx, "Downloading asset")) {
+            $file = Join-Path -path $env:temp -ChildPath $data.name
+            Write-Verbose "[$((Get-Date).TimeofDay)] Saving to $file"
+            Invoke-WebRequest -Uri $appx -UseBasicParsing -DisableKeepAlive -OutFile $file
+            Write-Verbose "[$((Get-Date).TimeofDay)] Adding Appx Package"
+            Add-AppxPackage -Path $file -ErrorAction Stop
+            if ($passthru) {
+                Get-AppxPackage microsoft.desktopAppInstaller
+            }
+        }
+    }
+    #Try
+    Catch {
+        Write-Verbose "[$((Get-Date).TimeofDay)] There was an error."
+        Throw $_
+    }
+    Write-Verbose "[$((Get-Date).TimeofDay)] Ending $($myinvocation.mycommand)"
+winget install Google.Chrome
+winget install Mozilla.Firefox 
+winget install NotepadPlusPlus.NotepadPlusPlus
+winget install VideoLAN.VLC
+winget install Zoom.Zoom
+winget install TeamViewer.TeamViewer
+}}
+else {
+Write-Host "Winget is installed..."
+winget install Google.Chrome
+winget install Mozilla.Firefox 
+winget install NotepadPlusPlus.NotepadPlusPlus
+winget install VideoLAN.VLC
+winget install Zoom.Zoom
+winget install TeamViewer.TeamViewer
+}
+Write-Host "Starting Windows Update..."
+Install-Module PSWindowsUpdate -Force
+Set-ExecutionPolicy RemoteSigned
+Import-Module PSWindowsUpdate
+Get-WUInstall -MicrosoftUpdate -AcceptAll -AutoReboot
+Write-Host "Windows Update complete!"
+Write-Host "Joining NOMMA.lan domain..."
+Add-Computer -DomainName NOMMA.lan
+Restart-Computer
+Write-Host "Domain join complete!"
 
