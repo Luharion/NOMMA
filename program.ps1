@@ -1,5 +1,4 @@
-
-slmgr.vbs /ipk <your product key>
+slmgr.vbs /ipk 8NBT4-JHGVW-J9WGV-X7FX7-DRR9C
 if ((Get-Command winget) -eq $null) {
     Write-Output "Winget is not installed."
 Function Install-WinGet {
@@ -75,26 +74,12 @@ winget install TeamViewer.TeamViewer
 winget install -e --id Audacity.Audacity
 winget install -e --id Piriform.CCleaner
 }
-$OfficeSourcePath = "C:\Office2019"
-$OfficeSetupExe = "$OfficeSourcePath\Setup.exe"
-$OfficeConfigXml = "$OfficeSourcePath\configuration.xml"
+clear 
+Write-Host "All programs have been installed with no issue...."
+sleep 10
+Write-Host "Activing Windows 10 Pro....."
+slmgr /ato
 
-# Create the configuration file
-@"
-<Configuration>
-  <Add OfficeClientEdition="64">
-    <Product ID="6YDG3-6NR8Q-J6T2C-VY2FY-R6263">
-      <Language ID="en-us"/>
-    </Product>
-  </Add>
-  <Display Level="None"/>
-  <Logging Level="Standard" Path="%temp%" />
-  <Property Name="AUTOACTIVATE" Value="1"/>
-</Configuration>
-"@ | Out-File -FilePath $OfficeConfigXml
-
-# Start the installation
-Start-Process $OfficeSetupExe -ArgumentList "/configure $OfficeConfigXml" -Wait
 
 Write-Host "Starting Windows Update..."
 Install-Module PSWindowsUpdate -Force
