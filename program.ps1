@@ -1,8 +1,8 @@
 # Install Google Chrome
-Write-Host "Installing Google Chrome..."
-Invoke-WebRequest -Uri "https://dl.google.com/chrome/install/stable/GoogleChromeStandaloneEnterprise64.msi" -OutFile "$env:TEMP\GoogleChromeStandaloneEnterprise64.msi"
-Start-Process -FilePath "$env:TEMP\GoogleChromeStandaloneEnterprise64.msi" -ArgumentList "/quiet /norestart" -Wait
-Remove-Item "$env:TEMP\GoogleChromeStandaloneEnterprise64.msi"
+$url = "https://dl.google.com/chrome/install/stable/GoogleChromeStandaloneSetup64.exe"
+$installer = "$env:temp\GoogleChromeStandaloneSetup64.exe"
+Invoke-WebRequest $url -OutFile $installer
+Start-Process $installer -ArgumentList '/silent /install' -Wait
 
 # Install Firefox
 Write-Host "Installing Firefox..."
