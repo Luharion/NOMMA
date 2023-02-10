@@ -1,3 +1,5 @@
+
+slmgr.vbs /ipk <your product key>
 if ((Get-Command winget) -eq $null) {
     Write-Output "Winget is not installed."
 Function Install-WinGet {
@@ -59,6 +61,8 @@ winget install NotepadPlusPlus.NotepadPlusPlus
 winget install VideoLAN.VLC
 winget install Zoom.Zoom
 winget install TeamViewer.TeamViewer
+winget install -e --id Audacity.Audacity
+winget install -e --id Piriform.CCleaner
 }}
 else {
 Write-Host "Winget is installed..."
@@ -68,7 +72,30 @@ winget install NotepadPlusPlus.NotepadPlusPlus
 winget install VideoLAN.VLC
 winget install Zoom.Zoom
 winget install TeamViewer.TeamViewer
+winget install -e --id Audacity.Audacity
+winget install -e --id Piriform.CCleaner
 }
+$OfficeSourcePath = "C:\Office2019"
+$OfficeSetupExe = "$OfficeSourcePath\Setup.exe"
+$OfficeConfigXml = "$OfficeSourcePath\configuration.xml"
+
+# Create the configuration file
+@"
+<Configuration>
+  <Add OfficeClientEdition="64">
+    <Product ID="O365ProPlusRetail">
+      <Language ID="en-us"/>
+    </Product>
+  </Add>
+  <Display Level="None"/>
+  <Logging Level="Standard" Path="%temp%" />
+  <Property Name="AUTOACTIVATE" Value="1"/>
+</Configuration>
+"@ | Out-File -FilePath $OfficeConfigXml
+
+# Start the installation
+Start-Process $OfficeSetupExe -ArgumentList "/configure $OfficeConfigXml" -Wait
+
 Write-Host "Starting Windows Update..."
 Install-Module PSWindowsUpdate -Force
 Set-ExecutionPolicy RemoteSigned
